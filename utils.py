@@ -11,6 +11,8 @@ data_path = cwd / "data"
 
 # Probability stuff #
 
+# need to fix l2p and p2l
+
 
 def o2p(o): return o/(1+o)
 def p2o(p): return p/(1-p)
@@ -122,6 +124,11 @@ def load_data(data_path=data_path, binary=True, continuous=True):
             # This is necessary, otherwise Pandas messes up date conversion.
             convert_dates=False,
         )
+        binary_questions.drop(
+            ['title', 'title_short', 'description', 'split', 'categories'],
+            axis=1)
+        binary_questions["question_id"] = \
+            binary_questions["question_id"].astype("int16")
 
         print("Loading binary predictions")
         binary_predictions = pd.read_json(
@@ -131,6 +138,18 @@ def load_data(data_path=data_path, binary=True, continuous=True):
         binary_predictions["t"] = binary_predictions["t"].apply(
             datetime.fromtimestamp)
         binary_predictions = binary_predictions.set_index("t", drop=False)
+        binary_predictions["user_id"] = binary_predictions["user_id"].astype(
+            "int16")
+        binary_predictions["question_id"] = \
+            binary_predictions["question_id"].astype("int16")
+        binary_predictions["prediction"] = \
+            binary_predictions["prediction"].astype("float32")
+        binary_predictions["reputation_at_t"] = \
+            binary_predictions["reputation_at_t"].astype("float32")
+        binary_predictions["mp"] = binary_predictions["mp"].astype(
+            "float32")
+        binary_predictions["cp"] = binary_predictions["cp"].astype(
+            "float32")
 
     if continuous:
         print("Loading continuous questions")
