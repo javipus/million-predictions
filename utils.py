@@ -78,25 +78,39 @@ def augment_prediction_data(data, _type='binary'):
 
 
 def get_features_of_latest_forecasts(question_df):
+    question_df = question_df.sort_values('t')
+    idxs = get_idxs_of_users_latest_forecasts(
+        question_df['user_id'])
+    # print(idxs_of_users_latest_forecasts)
+    return pd.DataFrame({
+        'predictions': question_df.prediction.values[idxs],
+        'question_lifetime_portion_elapsed':
+            question_df.relative_t.values[idxs],
+        'reputations': question_df.reputation_at_t.values[idxs],
+        'user_ids': question_df.user_id.values[idxs],
+    })
 
-    question_df = question_df.sort_values(by=['t'])
 
-    idxs_of_users_latest_forecasts = get_idxs_of_users_latest_forecasts(
-        list(question_df["user_id"]))
+# def get_features_of_latest_forecasts(question_df):
 
-    features_of_latest_forecasts = [0, ]*len(question_df.index)
+#     question_df = question_df.sort_values(by=['t'])
 
-    for i, idxs in enumerate(idxs_of_users_latest_forecasts):
-        relevant_df = question_df.iloc[idxs]
-        features_of_latest_forecasts[i] = {
-            "predictions": list(relevant_df["prediction"]),
-            "question_lifetime_portion_elapsed":
-            list(relevant_df["relative_t"]),
-            "reputations": list(relevant_df["reputation_at_t"]),
-            "user_ids": list(relevant_df["user_id"])
-        }
+#     idxs_of_users_latest_forecasts = get_idxs_of_users_latest_forecasts(
+#         list(question_df["user_id"]))
 
-    return features_of_latest_forecasts
+#     features_of_latest_forecasts = [0, ]*len(question_df.index)
+
+#     for i, idxs in enumerate(idxs_of_users_latest_forecasts):
+#         relevant_df = question_df.iloc[idxs]
+#         features_of_latest_forecasts[i] = {
+#             "predictions": list(relevant_df["prediction"]),
+#             "question_lifetime_portion_elapsed":
+#             list(relevant_df["relative_t"]),
+#             "reputations": list(relevant_df["reputation_at_t"]),
+#             "user_ids": list(relevant_df["user_id"])
+#         }
+
+#     return features_of_latest_forecasts
 
 
 def add_features_of_latest_forecasts(question_df):
@@ -107,12 +121,19 @@ def add_features_of_latest_forecasts(question_df):
 
 
 def get_idxs_of_users_latest_forecasts(user_ids):
-    latest_idxs = {}
-    idxs_of_users_latest_forecasts = [0, ]*len(user_ids)
-    for i in range(len(user_ids)):
-        latest_idxs[user_ids[i]] = i
-        idxs_of_users_latest_forecasts[i] = [v for k, v in latest_idxs.items()]
+    idxs_of_users_latest_forecasts = [0] * len(user_ids)
+    for i, user_id in enumerate(user_ids):
+        idxs_of_users_latest_forecasts[user_id] = i
     return idxs_of_users_latest_forecasts
+
+# def get_idxs_of_users_latest_forecasts(user_ids):
+#     latest_idxs = {}
+#     idxs_of_users_latest_forecasts = [0, ]*len(user_ids)
+#     for i in range(len(user_ids)):
+#         latest_idxs[user_ids[i]] = i
+#         idxs_of_users_latest_forecasts[i] = \
+#       [v for k, v in latest_idxs.items()]
+#     return idxs_of_users_latest_forecasts
 
 
 def load_data(data_path=data_path, binary=True, continuous=True):

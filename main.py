@@ -29,14 +29,16 @@ bdf = get_bdf(data)  # , nrows=5000)
 phs = get_features_of_latest_forecasts(bdf)
 
 # calculate Neyman aggregation for every question at every time
-bdf['np'] = np.array([neyman_agg(ph) for ph in phs]).flatten()
+# bdf['np'] = np.array([neyman_agg(ph) for ph in phs]).flatten()
+# bdf['np'] = phs.apply(neyman_agg, axis=1).values
 
-# Score every aggregate -- neyman > metaculus > community
-scores = score_preds(bdf, ['cp', 'mp', 'np'], log_score)
 
-# Print the aggregate rankings
-for col in scores:
-    print("The mean " + col + " is: " + str(scores[col].mean()))
+# # Score every aggregate -- neyman > metaculus > community
+# scores = score_preds(bdf, ['cp', 'mp', 'np'], log_score)
+
+# # Print the aggregate rankings
+# for col in scores:
+#     print("The mean " + col + " is: " + str(scores[col].mean()))
 
 # Report runtime
 print("This script ran in: " + str(datetime.now() - startTime))
