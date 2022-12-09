@@ -3,12 +3,12 @@ import numpy as np
 
 def neyman_agg(prediction_history):
 
-    ps = prediction_history.predictions
+    ps = prediction_history.prediction
     # print(ps)
     ts = prediction_history.question_lifetime_portion_elapsed
     ts -= ts.max()
 
-    reps = prediction_history.reputations
+    reps = prediction_history.reputation_at_t
     reps -= reps.max()
 
     ws = np.exp(ts + reps)

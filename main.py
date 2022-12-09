@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # import pandas as pd
 # import seaborn as sns
 
-from utils import get_features_of_latest_forecasts, log_score, score_preds
+from utils import get_features_of_latest_forecasts, meta_df_prediction_data, log_score, score_preds
 from aggregation import neyman_agg
 from utils import load_data, get_bdf
 from datetime import datetime
@@ -26,8 +26,10 @@ bdf = get_bdf(data)  # , nrows=5000)
 
 # creates dictionary of "prediction histories" for every question at every
 # point in time
-phs = get_features_of_latest_forecasts(bdf)
+# phs = get_features_of_latest_forecasts(bdf)
+phs = meta_df_prediction_data(bdf)
 
+print("phs data type is: " + str(phs.dtypes))
 # calculate Neyman aggregation for every question at every time
 bdf['np'] = np.array([neyman_agg(ph) for ph in phs]).flatten()
 # bdf['np'] = phs.apply(neyman_agg).values  # , axis=1)

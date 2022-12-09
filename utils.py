@@ -77,6 +77,17 @@ def augment_prediction_data(data, _type='binary'):
     return predictions
 
 
+def meta_df_prediction_data(predictions_df):
+    # this function builds a dataframe of ' dataframes.
+    # each 'dataframe contains all prediction data for a given question,
+    #  from all users.
+    # predictions_meta = predictions_df.loc[predictions_df.groupby(
+    #     'question_id').groups]
+    hierarchical_df = predictions_df.groupby('question_id').apply(pd.DataFrame)
+    print(hierarchical_df)
+    return hierarchical_df
+
+
 def get_features_of_latest_forecasts(question_df):
     question_df = question_df.sort_values('t')
     idxs = get_idxs_of_users_latest_forecasts(
