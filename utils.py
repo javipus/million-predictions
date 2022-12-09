@@ -8,6 +8,8 @@ import pandas as pd
 
 cwd = Path(".").absolute()
 data_path = cwd / "data"
+bdf_path = data_path / "bdf.csv"
+scores_path = data_path / "scores.csv"
 
 # Probability stuff #
 
@@ -38,12 +40,14 @@ def score_preds(bdf, preds, scoring_rule):
 # Data transformation #
 
 
-def get_bdf(data, nrows=None, transform=None):
-    _df = augment_prediction_data(data, 'binary')
-    nrows = nrows or _df.shape[0]
-    return _df.head(nrows).groupby("question_id"). \
-        apply(transform or
-              (lambda x: x)).reset_index(drop=True)
+def get_bdf(data=None, nrows=None, transform=None):
+    try:
+        return pd.read_csv(bdf_path, nrows=nrows)
+    except FileNotFoundError:
+        _df = augment_prediction_data(data, 'binary')
+        nrows = nrows or _df.shape[0]
+        return _df.head(nrows).groupby("question_id"). \
+            apply(transform or (lambda x: x)).reset_index(drop=True)
 
 
 def augment_prediction_data(data, _type='binary'):

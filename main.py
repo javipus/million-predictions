@@ -1,34 +1,32 @@
-import numpy as np
-import matplotlib as mpl
+import pandas as pd
 
-# commented out unused import
-# import pandas as pd
-# commented out unused import
-# import seaborn as sns
-
-from utils import get_features_of_latest_forecasts, log_score, score_preds
+from utils import log_score, score_preds
 from aggregation import neyman_agg
-from utils import load_data, get_bdf
+from utils import scores_path, get_bdf
 
-plt = mpl.pyplot
-plt.rc('font', size=22)
-plt.rc('figure', figsize=(1.5*16, 1.5*9))
+try:
+    # Load scores from file if available
+    # scores = pd.read_csv(scores_path)
+    raise FileNotFoundError
+except FileNotFoundError:
+    # Calculate scores if not available
+    # Load binary prediction data
+    bdf = get_bdf()
 
+    # We're gonna aggregate predictions using our formula question by question
+    qids = bdf['question_id'].unique()
+    qs = []
+    for qid in qids:
+        qs.append(neyman_agg(
+            bdf[bdf.question_id == qid]))
 
-# loads binary data only
-data = load_data(continuous=False)
+    # Replace binary predictions dataframe with another one containing our aggregate
+    bdf = pd.concat(qs, ignore_index=True)
 
-# creates dataframe of binary predictions enriched with useful question info
-# loading only first 5k rows because the analysis below will crash my laptop
-# with a lager dataset
-bdf = get_bdf(data, nrows=5000)
+    # Score every aggregate -- hopefully neyman > metaculus > community
+    scores = score_preds(bdf, ['cp', 'mp', 'np'], log_score)
 
-# creates dictionary of "prediction histories" for every question at every
-# point in time
-phs = get_features_of_latest_forecasts(bdf)
-
-# calculate Neyman aggregation for every question at every time
-bdf['np'] = np.array([neyman_agg(ph) for ph in phs]).flatten()
-
-# Score every aggregate -- neyman > metaculus > community
-scores = score_preds(bdf, ['cp', 'mp', 'np'], log_score)
+print(scores.describe())
+ax = scores.boxplot()
+ax.set_yscale('log')
+ax.get_figure().show()
