@@ -81,14 +81,26 @@ def get_features_of_latest_forecasts(question_df):
     question_df = question_df.sort_values('t')
     idxs = get_idxs_of_users_latest_forecasts(
         question_df['user_id'])
-    # print(idxs_of_users_latest_forecasts)
-    return pd.DataFrame({
+    print("idxs_of_users_latest_forecasts: " + str(idxs))
+    # print("the prediction values are: ")
+    # print(question_df.prediction.values[idxs])
+    output = pd.DataFrame({
         'predictions': question_df.prediction.values[idxs],
         'question_lifetime_portion_elapsed':
             question_df.relative_t.values[idxs],
         'reputations': question_df.reputation_at_t.values[idxs],
         'user_ids': question_df.user_id.values[idxs],
     })
+    # print(type(output.predictions.to_numpy()))
+    # print(type(output.predictions.dtype))
+    return output
+    # return pd.DataFrame({
+    #     'predictions': question_df.prediction.values[idxs].to_numpy(),
+    #     'question_lifetime_portion_elapsed': \
+    #       question_df.relative_t.values[idxs].to_numpy(),
+    #     'reputations': question_df.reputation_at_t.values[idxs].to_numpy(),
+    #     'user_ids': question_df.user_id.values[idxs].to_numpy(),
+    # })
 
 
 # def get_features_of_latest_forecasts(question_df):
@@ -124,6 +136,7 @@ def get_idxs_of_users_latest_forecasts(user_ids):
     idxs_of_users_latest_forecasts = [0] * len(user_ids)
     for i, user_id in enumerate(user_ids):
         idxs_of_users_latest_forecasts[user_id] = i
+    # print(idxs_of_users_latest_forecasts)
     return idxs_of_users_latest_forecasts
 
 # def get_idxs_of_users_latest_forecasts(user_ids):
