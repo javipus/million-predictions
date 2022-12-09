@@ -1,26 +1,31 @@
 import numpy as np
 from utils import p2l, l2p
 
+ln2 = np.log(2)
 
-def neyman_agg(prediction_history):
 
-    ps = np.array(prediction_history['predictions'])
+def neyman_agg(q, get_d=None, relative_t=False, half_life=1):
+    q = q.sort_values(by=['t']).reset_index(drop=True)
+    q['lo'] = q['prediction'].apply(p2l)
+    if relative_t:
+        dts = q.relative_t.diff().replace(np.nan, 0)
+    else:
+        dts = q.t.diff().replace(np.nan, 0)
 
-    ts = np.array(
-        prediction_history['question_lifetime_portion_elapsed'])
-    ts -= max(ts)
+    get_d = get_d or lambda n: (n*(3*n**2-3*n+1)**(.5)-2) / (n**2-n-1)
+    ds = [get_d(n) for n in range(1, q.shape[0]+1)]
 
-    reps = np.array(prediction_history['reputations'])
-    reps -= max(reps)
+    los = np.array([])
+    ws = np.array([])
 
-    ws = np.exp(ts + reps)
-    ws /= sum(ws)
-    assert abs(sum(ws) - 1) < 1e-6
+    # NB this assumes row index ranges (0, q.shape[0]-1)
+    for k, row in q.iterrows():
+        if k > 0:
+            ws *= np.exp(-dts[k] * ln2 / half_life)
+        ws = np.append(ws, np.exp(row['reputation_at_t']))
+        los = np.append(los,
+                        ds[k] * np.inner(q.iloc[:k+1, :]['lo'], ws) / sum(ws))
 
-    # commenting this line out as it's not being used in the script
-    # wps = ws*ps
+    q['np'] = l2p(los)
 
-    n = len(ps)
-    k = (n*(3*n**2-3*n+1)**(.5)-2) / (n**2-n-1)
-
-    return np.vectorize(l2p)(k*sum(ws*np.vectorize(p2l)(ps)))
+    return q
