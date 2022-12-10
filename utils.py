@@ -34,6 +34,7 @@ def log_score(p, y, base=2):
     except ValueError:
         return np.inf
 
+
 def score_preds(bdf, preds, scoring_rule):
     sc = pd.DataFrame([bdf.apply(lambda row: scoring_rule(
         row[pred], row['resolution']), axis=1) for pred in preds]).T
