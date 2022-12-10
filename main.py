@@ -21,7 +21,8 @@ except FileNotFoundError:
         qs.append(neyman_agg(
             bdf[bdf.question_id == qid]))
 
-    # Replace binary predictions dataframe with another one containing our aggregate
+    # Replace binary predictions dataframe with another one
+    # containing our aggregate
     bdf = pd.concat(qs, ignore_index=True)
 
     # Score every aggregate -- hopefully neyman > metaculus > community

@@ -121,7 +121,8 @@ def get_idxs_of_users_latest_forecasts(user_ids):
     return idxs_of_users_latest_forecasts
 
 
-def load_data(data_path=data_path, binary=True, continuous=True):
+def load_data(data_path=data_path, binary=True, continuous=True,
+              question_only=False):
     if binary:
         print("Loading binary questions")
         binary_questions = pd.read_json(
@@ -130,15 +131,15 @@ def load_data(data_path=data_path, binary=True, continuous=True):
             # This is necessary, otherwise Pandas messes up date conversion.
             convert_dates=False,
         )
-
-        print("Loading binary predictions")
-        binary_predictions = pd.read_json(
-            data_path / "predictions-binary-hackathon.json",
-            orient="records",
-        )
-        binary_predictions["t"] = binary_predictions["t"].apply(
-            datetime.fromtimestamp)
-        binary_predictions = binary_predictions.set_index("t", drop=False)
+        if not question_only:
+            print("Loading binary predictions")
+            binary_predictions = pd.read_json(
+                data_path / "predictions-binary-hackathon.json",
+                orient="records",
+            )
+            binary_predictions["t"] = binary_predictions["t"].apply(
+                datetime.fromtimestamp)
+            binary_predictions = binary_predictions.set_index("t", drop=False)
 
     if continuous:
         print("Loading continuous questions")
@@ -148,22 +149,24 @@ def load_data(data_path=data_path, binary=True, continuous=True):
             # This is necessary, otherwise Pandas messes up date conversion.
             convert_dates=False,
         )
-
-        print("Loading continuous predictions")
-        continuous_predictions = pd.read_parquet(
-            data_path / "predictions-continuous-hackathon-v2.parquet"
-        )
-        continuous_predictions["t"] = continuous_predictions["t"].apply(
-            datetime.fromtimestamp)
-        continuous_predictions = continuous_predictions.set_index(
-            "t", drop=False)
-    return {
+        if not question_only:
+            print("Loading continuous predictions")
+            continuous_predictions = pd.read_parquet(
+                data_path / "predictions-continuous-hackathon-v2.parquet"
+            )
+            continuous_predictions["t"] = continuous_predictions["t"].apply(
+                datetime.fromtimestamp)
+            continuous_predictions = continuous_predictions.set_index(
+                "t", drop=False)
+    dataset = {
         "questions": {
             "binary": binary_questions if binary else None,
             "continuous": continuous_questions if continuous else None,
-        },
-        "predictions": {
+        }
+    }
+    if not question_only:
+        dataset["predictions"] = {
             "binary": binary_predictions if binary else None,
             "continuous": continuous_predictions if continuous else None,
         }
-    }
+    return dataset
