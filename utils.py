@@ -2,6 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from functools import reduce
 from math import log2, log
+import numpy as np
 import pandas as pd
 # unused import
 # import numpy as np
@@ -28,8 +29,10 @@ def agg_lodds(ps, k=1): return l2p(k*sum(map(p2l, ps)) / len(ps))
 
 
 def log_score(p, y, base=2):
-    return -(y*log(p, base) + (1-y)*log(1-p, base))
-
+    try:
+        return -(y*log(p, base) + (1-y)*log(1-p, base))
+    except ValueError:
+        return np.inf
 
 def score_preds(bdf, preds, scoring_rule):
     sc = pd.DataFrame([bdf.apply(lambda row: scoring_rule(
