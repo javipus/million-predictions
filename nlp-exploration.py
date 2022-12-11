@@ -1,4 +1,4 @@
-# import numpy as np
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as mp
 from sklearn.linear_model import LinearRegression
@@ -12,21 +12,12 @@ q_only = pd.DataFrame(q_only_data["questions"]["binary"])
 # get a dataframe with all binary question/prediction data.
 p_data = load_data(continuous=False, question_only=False)
 p_only = pd.DataFrame(p_data["predictions"]["binary"]).add_suffix("_p")
-# print(q_p_data)
-# bdf = get_bdf(q_p_data)
-# question 1 -- length of description plotted against the accuracy of the
-# crowd on each question.
-# subquestions include: does it vary for categories? what about subsets
-# of a given question, eg, do people who were wrong get "more" wrong re: len?
 
+# These lines check the size and datatypes of q_only
 # print(q_only.info())
 # print(q_only.tail())
 
-# we want to get the len() of every description.
-# second, we need
-# we also want to groupby each category --
-# maybe subcategories later.
-
+# produce an enhanced question dataframe that includes mp and cp
 q_enhanced = q_only.merge(
     p_only, how="left", left_on="question_id", right_on="question_id_p")
 q_enhanced = q_enhanced[['question_id', 'title', 'title_short',
@@ -36,18 +27,15 @@ q_enhanced = q_enhanced[['question_id', 'title', 'title_short',
 q_enhanced = q_enhanced[q_enhanced.resolution_comment == "resolved"]
 q_enhanced = q_enhanced[q_enhanced.mp_p.notnull()]
 
-# print(q_enhanced.info())
-# print(q_enhanced.shape)
-# # print(q_only.tail())
-
+# Create new columns with factors we care abuot; text length and accuracy
 q_enhanced['description_len'] = q_enhanced['description'].str.len()
-q_enhanced['cp_accuracy'] = q_enhanced['resolution'].subtract(
-    q_enhanced['cp_p']).abs()
-q_enhanced['mp_accuracy'] = q_enhanced['resolution'].subtract(
-    q_enhanced['mp_p']).abs()
-# print(q_enhanced['accuracy'])
-
-# print(q_enhanced['mp_accuracy'].isna().sum())
+# the below line normalizes the length for more intuitive regressions
+q_enhanced['description_len'] = np.divide(
+    q_enhanced['description_len'], q_enhanced['description_len'].max())
+q_enhanced['cp_accuracy'] = np.exp(q_enhanced['resolution'].subtract(
+    q_enhanced['cp_p'], 2))
+q_enhanced['mp_accuracy'] = np.exp(q_enhanced['resolution'].subtract(
+    q_enhanced['mp_p']))
 
 # get a sense for distribution of data
 # q_enhanced.plot(x="description_len", y=[
@@ -55,7 +43,6 @@ q_enhanced['mp_accuracy'] = q_enhanced['resolution'].subtract(
 # mp.show()
 
 # plot linear regressions against our points!
-linear_regressor_cp = LinearRegression()  # create object for the class
 # perform linear regression
 # print(type(]))
 # print(type(q_enhanced['cp_accuracy']))
@@ -68,20 +55,36 @@ print(len(var_len))
 print(len(var_cp_acc))
 print(len(var_mp_acc))
 
+# # build linear regression with cp
+# linear_regressor_cp = LinearRegression().fit(
+#     var_len, var_cp_acc)
+# cp_pred = linear_regressor_cp.predict(
+# var_len)
+#
+# build linear regression with mp
+# linear_regressor_mp = LinearRegression()
+# linear_regressor_mp.fit(
+#     var_len, var_mp_acc)
+# mp_pred = linear_regressor_mp.predict(
+#     var_mp_acc)  # make predictions
 
-linear_regressor_cp.fit(
-    var_len, var_cp_acc)
-linear_regressor_mp = LinearRegression()
-linear_regressor_mp.fit(
-    var_len, var_mp_acc)
+m_1, b_1 = np.polyfit(q_enhanced['description_len'], var_cp_acc, 1)
+m_2, b_2 = np.polyfit(q_enhanced['description_len'], var_mp_acc, 1)
 
-cp_pred = linear_regressor_cp.predict(
-    var_cp_acc)
-
-mp_pred = linear_regressor_mp.predict(
-    var_mp_acc)  # make predictions
-
+fig1 = mp.figure()
 mp.scatter(var_len, var_cp_acc)
+mp.plot(var_len, m_1*var_len+b_1)
+mp.text(.832, 2.149, str(m_1))
+mp.show()
+fig1.savefig("figures/len_vs_cp.png")
+
+fig2 = mp.figure()
+mp.scatter(var_len, var_mp_acc)
+mp.plot(var_len, m_2*var_len+b_2)
+mp.text(.832, 2.149, str(m_2))
+mp.show()
+fig2.savefig("figures/len_vs_mp.png")
+
 # mp.plot(var_len, var_cp_acc)
 #     var_cp_acc, var_mp_acc]
 # mp.scatter(var_len, [
