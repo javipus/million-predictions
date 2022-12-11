@@ -34,5 +34,17 @@ q_enhanced_categories = pd.concat([q_enhanced, q_flatten_categories], axis=1)
 # produce dataframe with breakdown of statistical significance and correlation for all categories with >=10 questions.
 category_results = calc_corr_length_pred(q_enhanced_categories, return_columns=["category", "var_len", "c_i_cp", "m_cp", "b_cp",
                                                                                 "var_cp_acc", "c_i_mp", "m_mp", "b_mp", "var_mp_acc", "t_test_cp",
-                                                                                "p_value_cp", "t_test_mp", "p_value_mp"])
-print(category_results)
+                                                                                "p_value_cp", "t_test_mp", "p_value_mp"]).squeeze()
+
+large_n_category_results = category_results[category_results["m_mp"] > 0.05]
+small_n_category_results = category_results[category_results["p_value_mp"] < 0.05]
+print(large_n_category_results.shape)
+print(small_n_category_results.shape)
+
+large_n_category_results.sort_values(by="m_mp")
+small_n_category_results.sort_values(by="t_test_mp")
+avg_slope_large_n = large_n_category_results["m_mp"].mean()
+avg_t_statistic_small_n = small_n_category_results["t_test_mp"].mean()
+print(avg_slope_large_n)
+print(avg_t_statistic_small_n)
+print(large_n_category_results["m_mp"])
