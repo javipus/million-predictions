@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as mp
-from sklearn.linear_model import LinearRegression
-
+import sklearn  # import LinearRegression
+import scipy
 from utils import load_data  # scores_path,
 
 # make a dataframe for question data only
@@ -70,6 +70,13 @@ print(len(var_mp_acc))
 
 m_1, b_1 = np.polyfit(q_enhanced['description_len'], var_cp_acc, 1)
 m_2, b_2 = np.polyfit(q_enhanced['description_len'], var_mp_acc, 1)
+c_i_1 = scipy.stats.norm.interval(
+    confidence=0.95, loc=np.mean(m_1), scale=scipy.stats.sem(q_enhanced['description_len']))
+
+print("The confidence interval for slope_cp: " + str(m_1) + " is: " + str(c_i_1))
+c_i_2 = scipy.stats.norm.interval(
+    confidence=0.95, loc=np.mean(m_2), scale=scipy.stats.sem(q_enhanced['description_len']))
+print("The confidence interval for slope_cp: " + str(m_2) + " is: " + str(c_i_2))
 
 fig1 = mp.figure()
 mp.scatter(var_len, var_cp_acc)
