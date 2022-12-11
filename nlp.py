@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as mp
-
+from sklearn import metrics
 import scipy
 
 
@@ -19,8 +19,11 @@ def enhance_df(main_df, new_df):
     # the below line normalizes the length for more intuitive regressions
     enhanced_df['description_len'] = np.divide(
         enhanced_df['description_len'], enhanced_df['description_len'].max())
-    enhanced_df['cp_accuracy'] = np.exp(enhanced_df['resolution'].subtract(
-        enhanced_df['cp_p'], 2))
+    enhanced_df['cp_accuracy'] = metrics.brier_score_loss(
+        y_true=enhanced_df['resolution'], y_prob=enhanced_df['cp_p'])
+    enhanced_df['mp_accuracy'] = metrics.brier_score_loss(
+        y_true=enhanced_df['resolution'], y_prob=enhanced_df['mp_p'])
+
     enhanced_df['mp_accuracy'] = np.exp(enhanced_df['resolution'].subtract(
         enhanced_df['mp_p']))
     return enhanced_df

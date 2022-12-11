@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as mp
+import sklearn
 from utils import load_data
 from nlp import enhance_df, calc_corr_length_pred, standard_scatter_and_regression
 # make a dataframe for question data only
