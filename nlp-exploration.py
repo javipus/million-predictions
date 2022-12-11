@@ -3,8 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as mp
 from sklearn.linear_model import LinearRegression
 
-# from utils import log_score, score_preds
-# from aggregation import neyman_agg
 from utils import load_data  # scores_path,
 
 # make a dataframe for question data only
@@ -49,11 +47,11 @@ q_enhanced['mp_accuracy'] = q_enhanced['resolution'].subtract(
     q_enhanced['mp_p']).abs()
 # print(q_enhanced['accuracy'])
 
-print(q_enhanced['mp_accuracy'].isna().sum())
+# print(q_enhanced['mp_accuracy'].isna().sum())
 
 # get a sense for distribution of data
-q_enhanced.plot(x="description_len", y=[
-                "cp_accuracy", "mp_accuracy"], kind="bar", figsize=(9, 8))
+# q_enhanced.plot(x="description_len", y=[
+# "cp_accuracy", "mp_accuracy"], kind="bar", figsize=(9, 8))
 # mp.show()
 
 # plot linear regressions against our points!
@@ -65,6 +63,11 @@ linear_regressor_cp = LinearRegression()  # create object for the class
 var_len = q_enhanced['description_len'].values.reshape(-1, 1)
 var_cp_acc = q_enhanced['cp_accuracy'].values.reshape(-1, 1)
 var_mp_acc = q_enhanced['mp_accuracy'].values.reshape(-1, 1)
+
+print(len(var_len))
+print(len(var_cp_acc))
+print(len(var_mp_acc))
+
 
 linear_regressor_cp.fit(
     var_len, var_cp_acc)
@@ -78,9 +81,12 @@ cp_pred = linear_regressor_cp.predict(
 mp_pred = linear_regressor_mp.predict(
     var_mp_acc)  # make predictions
 
-mp.scatter(var_len, [
-    var_cp_acc, var_mp_acc])
-mp.plot(var_len, [
-    var_cp_acc, var_mp_acc],  # q_enhanced['mp_accuracy'
-    color=['red', 'blue'])
+mp.scatter(var_len, var_cp_acc)
+# mp.plot(var_len, var_cp_acc)
+#     var_cp_acc, var_mp_acc]
+# mp.scatter(var_len, [
+#     var_cp_acc, var_mp_acc])
+# mp.plot(var_len, [
+#     var_cp_acc, var_mp_acc],  # q_enhanced['mp_accuracy'
+# color=['red', 'blue'])
 mp.show()
