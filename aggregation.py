@@ -14,7 +14,7 @@ def get_aggregate(bdf, agg_func, agg_func_kwds={}):
     return pd.concat(qs, ignore_index=True)
 
 
-def neyman_agg(q, get_d=None, relative_t=True, half_life=ln2, col_name='np'):
+def neyman_agg(q, get_d=None, relative_t=True, half_life=ln2, rep_weight=1, freq_weight=1, mag_weight=1, col_name='np'):
     q = q.sort_values(by=['t']).reset_index(drop=True)
     q['lo'] = q['prediction'].apply(p2l)
     if relative_t:
@@ -31,8 +31,11 @@ def neyman_agg(q, get_d=None, relative_t=True, half_life=ln2, col_name='np'):
     # NB this assumes row index ranges (0, q.shape[0]-1)
     for k, row in q.iterrows():
         if k > 0:
-            ws *= np.exp(-dts[k] * ln2 / half_life)
-        ws = np.append(ws, np.exp(row['reputation_at_t']))
+            ws *= np.exp(-dts[k] * ln2 / half_life) if half_life < np.inf else 1
+        w_log = rep_weight*row['nrep'] -\
+            freq_weight*row['nfreq'] -\
+            mag_weight*row['nmag']
+        ws = np.append(ws, np.exp(w_log))
         los = np.append(los,
                         ds[k] * np.inner(q.iloc[:k+1, :]['lo'], ws) / sum(ws))
 
