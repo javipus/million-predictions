@@ -9,6 +9,7 @@ import pandas as pd
 
 cwd = Path(".").absolute()
 data_path = cwd / "data"
+binary_json_path = data_path / ""
 bdf_path = data_path / "bdf.csv"
 scores_path = data_path / "scores.csv"
 
@@ -34,6 +35,7 @@ def log_score(p, y, base=2):
     except ValueError:
         return np.inf
 
+
 def score_preds(bdf, preds, scoring_rule):
     sc = pd.DataFrame([bdf.apply(lambda row: scoring_rule(
         row[pred], row['resolution']), axis=1) for pred in preds]).T
@@ -43,14 +45,17 @@ def score_preds(bdf, preds, scoring_rule):
 # Data transformation #
 
 
-def get_bdf(data=None, nrows=None, transform=None):
+def get_bdf(data=None, nrows=None, transform=None, json_file=binary_json_path):
     try:
         return pd.read_csv(bdf_path, nrows=nrows)
     except FileNotFoundError:
-        _df = augment_prediction_data(data, 'binary')
+        data = data or load_data(binary=True, continuous=False)
+        _df = augment_prediction_data(data)
         nrows = nrows or _df.shape[0]
-        return _df.head(nrows).groupby("question_id"). \
-            apply(transform or (lambda x: x)).reset_index(drop=True)
+        _df = _df.head(nrows).groupby("question_id"). \
+            apply(transform or (lambda x: x)).sort_values(by=['t']).reset_index(drop=True)
+        _df['lo'] = _df.prediction.apply(p2l)
+        return _df
 
 
 def augment_prediction_data(data, _type='binary'):
@@ -69,6 +74,7 @@ def augment_prediction_data(data, _type='binary'):
             "close_time",
             "resolve_time",
             "duration",
+            "description",
         ]
     ]
     predictions = predictions.merge(question_data, on="question_id")
@@ -79,6 +85,7 @@ def augment_prediction_data(data, _type='binary'):
         predictions.publish_time
     predictions["relative_t"] = predictions.time_since_publish / \
         predictions.duration
+    predictions["q_description"] = predictions.description
     return predictions
 
 
